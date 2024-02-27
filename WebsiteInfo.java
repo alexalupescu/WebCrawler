@@ -26,77 +26,77 @@ public class WebsiteInfo {
         return baseUri;
     }
 
-    public String getTitle(Document doc) // preia titlul documentului
+    public String getTitle(Document doc) // get the title of the document
     {
         String title = doc.title();
-        // System.out.println("Titlul site-ului: " + title);
+        // System.out.println("Website title: " + title);
         return title;
     }
 
-    public String getKeywords(Document doc) // preia cuvintele cheie
+    public String getKeywords(Document doc) // get the keywords
     {
         Element keywords = doc.selectFirst("meta[name=keywords]");
         String keywordsString = "";
         if (keywords == null) {
-            // System.out.println("Nu exista tag-ul <meta name=\"keywords\">!");
+            // System.out.println("The tag doesn't exist: <meta name=\"keywords\">!");
         } else {
             keywordsString = keywords.attr("content");
-            // System.out.println("Cuvintele cheie au fost preluate!");
+            // System.out.println("Keywords have been retrieved!");
         }
         return keywordsString;
     }
 
-    public String getDescription(Document doc) // preia descrierea site-ului
+    public String getDescription(Document doc) // get the website description
     {
         Element description = doc.selectFirst("meta[name=description]");
         String descriptionString = "";
         if (description == null) {
-            // System.out.println("Nu exista tag-ul <meta name=\"description\">!");
+            // System.out.println("The tag doesn't exist: <meta name=\"description\">!");
         } else {
             descriptionString = description.attr("content");
-            // System.out.println("Descrierea site-ului a fost preluata!");
+            // System.out.println("The website description have been retrieved!");
         }
         return descriptionString;
     }
 
-    public String getRobots(Document doc) // preia lista de robots
+    public String getRobots(Document doc) // get list of robots
     {
         Element robots = doc.selectFirst("meta[name=robots]");
         String robotsString = "";
         if (robots == null) {
-            System.out.println("Nu exista tag-ul <meta name=\"robots\">!");
+            System.out.println("The tag doesn't exist: <meta name=\"robots\">!");
         } else {
             robotsString = robots.attr("content");
-            // System.out.println("Lista de robots a site-ului a fost preluata!");
+            // System.out.println("The list of robots have been retrieved");
         }
         return robotsString;
     }
 
-    public Set<String> getLinks(Document doc) throws IOException // preia link-urile de pe site (ancorele)
+    public Set<String> getLinks(Document doc) throws IOException // get the links from the website (anchors)
     {
         Elements links = doc.select("a[href]");
         Set<String> URLs = new HashSet<String>();
         for (Element link : links) {
-            String absoluteLink = link.attr("abs:href"); // facem link-urile relative sa fie absolute
-            if (absoluteLink.contains(baseUri)) // ignoram legaturile interne
+            String absoluteLink = link.attr("abs:href"); // we make the relative links absolute
+            if (absoluteLink.contains(baseUri)) // ignore internal links
             {
                 continue;
             }
 
-            // cautam eventuale ancore in link-uri
+            // we are looking for possible anchors in the links
             int anchorPosition = absoluteLink.indexOf('#');
-            if (anchorPosition != -1) // daca exista o ancora (un #)
+            if (anchorPosition != -1) // if there is an anchor (#)
             {
-                // stergem partea cu ancora din link
+                // delete the part with the anchor from the link
                 StringBuilder tempLink = new StringBuilder(absoluteLink);
                 tempLink.replace(anchorPosition, tempLink.length() - 1, "");
                 absoluteLink = tempLink.toString();
             }
 
-            // nu vrem sa adaugam duplicate, asa incat folosim o colectie de tip Set
+            // we don't want to add duplicates, so we use a collection of type Set
             URLs.add(absoluteLink);
         }
-        // System.out.println("Link-urile de pe site au fost preluate!");
+        // System.out.println("The links on the site have been taken!");
         return URLs;
     }
 }
