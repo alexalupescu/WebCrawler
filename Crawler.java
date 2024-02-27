@@ -35,6 +35,7 @@ public class Crawler {
         System.out.print(string);
     }
 
+    
     public static void main(String[] args) throws IOException {
         System.out.print("Loading website... ");
         WebsiteInfo websiteInfo = new WebsiteInfo("./ietf.org/", "http://ietf.org/");
@@ -44,11 +45,13 @@ public class Crawler {
         TreeMap<String, HashMap<String, Integer>> indirectIndex = null;
         HashMap<String, TreeMap<String, Double>> associatedVectors = null;
 
+        // for searches
         String query;
         Set<String> booleanSearchResults;
         SortedSet<HashMap.Entry<String, Double>> vectorSearchResults;
         Scanner queryScanner = new Scanner(System.in);
 
+        // the menu displayed to the user
         do {
             System.out.println("1. Create direct index + indice \"tf\"");
             System.out.println("2. Create indirect index + indice \"idf\"");
@@ -204,7 +207,8 @@ public class Crawler {
             System.out.print("\nPress a key to continue...");
             Scanner cont = new Scanner(System.in);
             cont.nextLine();
-            
+
+            // clear console output
             System.out.print("\033[H\033[2J\n");
             System.out.flush();
             Runtime.getRuntime().exec("clear");
