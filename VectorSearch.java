@@ -20,42 +20,42 @@ public class VectorSearch {
 
         String websiteFolder = websiteInfo.getWebsiteFolder();
 
-        // folosim fisierul de mapare al index-ului indirect pentru a prelua toata lista de documente
+        // we use the indirect index mapping file to retrieve the entire list of documents
         File indirectIndexMapFile = new File(websiteFolder + "indirectindex.map");
         Type indirectIndexType = new TypeToken<HashMap<String, String>>(){}.getType();
         HashMap<String, String> indirectIndexCollection = gsonBuilder.fromJson(new String(Files.readAllBytes(indirectIndexMapFile.toPath())), indirectIndexType);
 
-        // iteram prin toate documentele din colectie
+        // iterate through all the documents in the collection
         int numberOfDocuments = indirectIndexCollection.keySet().size();
-        int documentIndex = 0; // pentru afisarea progresului
+        int documentIndex = 0; // for displaying progress
         System.out.println();
         for (String document : indirectIndexCollection.keySet())
         {
             ++documentIndex;
             Crawler.printProgress(Crawler.startTime, numberOfDocuments, documentIndex);
 
-            // preluam toate cuvintele existente in documentul curent din index-ul indirect local acelui document
+            // we retrieve all the existing words in the current document from the local indirect index of that document
             File indirectIndexFile = new File(indirectIndexCollection.get(document));
             TreeMap<String, HashMap<String, Integer>> indirectIndex = IndirectIndex.loadIndirectIndex(indirectIndexFile.getAbsolutePath(), false);
 
-            // cream vectorul asociat documentului curent
+            // create the vector associated with the current document
             TreeMap<String, Double> currentDocumentVector = new TreeMap<>();
 
-            for (String word : indirectIndex.keySet())  // pentru fiecare cuvant in parte din document
+            for (String word : indirectIndex.keySet())  // for each individual word in the document
             {
-                // preluam tf-ul si idf-ul
+                // take over the tf and the idf
                 double tf = getTf(word, document);
                 double idf = getIdf(word, websiteInfo);
 
-                // in vectorul documentului curent, adaugam intrarea <cuvant, tf x idf>
+                // in the vector of the current document, we add the entry <word, tf x idf>
                 currentDocumentVector.put(word, tf * idf);
             }
 
-            // la final, adaugam documentul in colectia de vectori
+            // at the end, we add the document to the vector collection
             documentVectors.put(document, currentDocumentVector);
         }
 
-        // stocam vectorii asociati intr-un fisier JSON
+        // store the associated vectors in a JSON file
         Gson documentVectorsGsonBuilder = new GsonBuilder().setPrettyPrinting().create();
         String documentVectorsFile = documentVectorsGsonBuilder.toJson(documentVectors);
         Writer documentVectorsWriter = new BufferedWriter(new OutputStreamWriter(
@@ -66,7 +66,7 @@ public class VectorSearch {
         return documentVectors;
     }
 
-    // functia care incarca vectorii asociati documentelor HTML in memorie
+    // the function that loads the vectors associated with HTML documents into memory
     public static HashMap<String, TreeMap<String, Double>> loadAssociatedVectors(WebsiteInfo websiteInfo) throws IOException
     {
         if (associatedVectorsLoaded)
@@ -77,16 +77,16 @@ public class VectorSearch {
         HashMap<String, TreeMap<String, Double>> associatedVectors = new HashMap<>();
         JsonReader reader = new JsonReader(new InputStreamReader(new FileInputStream(websiteInfo.getWebsiteFolder() + "documentVectors.json"), "UTF-8"));
 
-        // parsam JSON-ul manual, obiect cu obiect
+        // parse the JSON manually, object by object
         reader.beginObject();
         while(reader.hasNext())
         {
-            // aici se citeste fiecare document
+           // read each document here
             String document = reader.nextName();
 
             TreeMap<String, Double> currentDocumentVector = new TreeMap<>();
 
-            // aici incep detaliile despre document (cuvant continut -> tf x idf)
+            // here start the details about the document (content word -> tf x idf)
             reader.beginObject();
             while (reader.hasNext())
             {
@@ -103,7 +103,7 @@ public class VectorSearch {
         return associatedVectors;
     }
 
-    // preia valoarea tf-ului pentru un cuvant dat din cadrul unui document
+    // retrieves the value of the tf for a given word within a document
     private static double getTf(String word, String document) throws IOException
     {
         File tfFile = new File(document + ".tf.json");
@@ -113,7 +113,7 @@ public class VectorSearch {
         return tfFileCollection.get(word);
     }
 
-    // preia valoarea idf-ului pentru un anumit cuvant dat
+    // get the value of the idf for a given word
     private static double getIdf(String word, WebsiteInfo websiteInfo) throws IOException
     {
         File idfFile = new File(websiteInfo.getWebsiteFolder() + "idf.json");
@@ -127,7 +127,7 @@ public class VectorSearch {
         return 0;
     }
 
-    // calculeaza tf-ul pentru interogarea utilizatorului
+    // calculate the tf for the user query
     private static double getTfQuery(String word, ArrayList<String> query)
     {
         int numberOfApparitions = 0;
@@ -143,8 +143,8 @@ public class VectorSearch {
 
     private static double cosineSimilarity(TreeMap<String, Double> doc, TreeMap<String, Double> queryDoc)
     {
-        double dotProduct = 0; // produsul scalar de la numarator
-        double sumSquaresD1 = 0; // sumele de patrate pentru norme
+        double dotProduct = 0; 
+        double sumSquaresD1 = 0; 
         double sumSquaresD2 = 0;
         double tfIdf1; // tf x idf
         double tfIdf2;
@@ -152,7 +152,7 @@ public class VectorSearch {
         boolean atLeastOneWordInCommon = false;
         for(String word : queryDoc.keySet())
         {
-            if (doc.containsKey(word)) // facem produsele scalare doar pentru elementele ce exista in ambele documente
+            if (doc.containsKey(word)) // we make the scalar products only for the elements that exist in both documents
             {
                 atLeastOneWordInCommon = true;
                 tfIdf1 = doc.get(word);
@@ -170,7 +170,7 @@ public class VectorSearch {
         return Math.abs(dotProduct) / (Math.sqrt(sumSquaresD1) * Math.sqrt(sumSquaresD2));
     }
 
-    // pentru sortarea rezultatelor
+    // for sorting the results
     static <K,V extends Comparable<? super V>> SortedSet<Map.Entry<K,V>> entriesSortedByValues(Map<K,V> map) {
         SortedSet<Map.Entry<K,V>> sortedEntries = new TreeSet<Map.Entry<K,V>>(
                 new Comparator<Map.Entry<K,V>>() {
@@ -186,31 +186,31 @@ public class VectorSearch {
 
     public static SortedSet<HashMap.Entry<String, Double>> Search(String query, WebsiteInfo websiteInfo, HashMap<String, TreeMap<String, Double>> documentVectors) throws IOException
     {
-        // impartim interogarea in cuvinte, dupa spatii
+        // divide the query into words, by spaces
         String[] splitQuery = query.split("\\s+");
         ArrayList<String> queryWords = new ArrayList<>();
 
         int i = 0;
         while (i <= splitQuery.length - 1)
         {
-            // ordinea fireasca este: operand OPERATOR operand OPERATOR ...
+            // the natural order is: operand OPERATOR operand OPERATOR ...
             String word = splitQuery[i];
 
-            // mai intai, verificam daca este exceptie
+            // first, we check if it is an exception
             if (ExceptionList.exceptions.contains(word))
             {
-                // il adaugam asa cum este
+                // we add it as it is
                 queryWords.add(word); ++i;
             }
-            // apoi daca este stopword
+            // then if it is a stopword
             else if (StopWordList.stopwords.contains(word))
             {
-                // ignoram cuvantul de tot
+                // ignore the word everything
                 ++i;
             }
-            else // cuvant de dictionar
+            else // dictionary word
             {
-                // se foloseste algoritmul Porter pentru stemming
+                // the Porter algorithm is used for stemming
                 PorterStemmer stemmer = new PorterStemmer();
                 stemmer.add(word.toCharArray(), word.length());
                 stemmer.stem();
@@ -220,27 +220,27 @@ public class VectorSearch {
             }
         }
 
-        // transformam interogarea in vector
+        // we transform the query into a vector
         TreeMap<String, Double> queryVector = new TreeMap<>();
         for (String word : queryWords)
         {
             queryVector.put(word, getTfQuery(word, queryWords) * getIdf(word, websiteInfo));
         }
 
-        // calculam similaritatile cosinus pentru toate documentele existente
+        // calculate cosine similarities for all existing documents
         HashMap<String, Double> similarities = new HashMap<>();
         for (String document: documentVectors.keySet())
         {
-            // calculam similaritatea cosinus intre documentul curent si interogarea utilizatorului
+            // calculate the cosine similarity between the current document and the user's query
             double similarity = cosineSimilarity(documentVectors.get(document), queryVector);
             if (similarity != 0)
             {
-                // luam in calcul doar documentele in care exista cel putin un cuvant al utilizatorului
+                // we take into account only the documents in which there is at least one word of the user
                 similarities.put(document, similarity);
             }
         }
 
-        // sortam documentele descrescator d.p.d.v. a similaritatii cosinus
+        // we sort the documents in descending order by of cosine similarity
         return entriesSortedByValues(similarities);
     }
 }
