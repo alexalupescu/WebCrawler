@@ -35,7 +35,7 @@ As with the Boolean search, it's necessary that the data structure with which we
 The search principle, in the proposed application, is similar to Boolean search. It parses the user query and splits it into words, using the same 3 filters for the resulting words. The list of keywords is then transformed into a vector of the same form as in the previous step: _<word, tf x idf>_, noting that the index _tf_ is local to the query! In other words, the query is treated as a document in itself, so that the _tf _is calculated using the query as parameter for the document. The cosine similarity is calculated according to the formula:
 
 
-<img width="264" alt="Capture" src="https://github.com/alexalupescu/WebCrawler/assets/134335603/4dfab2f7-2a45-4193-a581-ec42f9da0708">
+                                        <img width="264" alt="Capture" src="https://github.com/alexalupescu/WebCrawler/assets/134335603/4dfab2f7-2a45-4193-a581-ec42f9da0708">
 
 
 
